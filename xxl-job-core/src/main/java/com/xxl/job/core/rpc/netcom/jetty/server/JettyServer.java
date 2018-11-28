@@ -26,20 +26,26 @@ public class JettyServer {
 			public void run() {
 
 				// The Server
-				server = new Server(new ExecutorThreadPool(32, 256, 60L * 1000));  // 非阻塞
+				try {
+					logger.info(">>>>>>>>>>> xxl-job jetty server new start");
+					server = new Server(new ExecutorThreadPool(32, 256, 60L * 1000));  // 非阻塞
 
-				// HTTP connector
-				ServerConnector connector = new ServerConnector(server);
-				if (ip!=null && ip.trim().length()>0) {
-					//connector.setHost(ip);	// The network interface this connector binds to as an IP address or a hostname.  If null or 0.0.0.0, then bind to all interfaces.
+					// HTTP connector
+					ServerConnector connector = new ServerConnector(server);
+					if (ip!=null && ip.trim().length()>0) {
+						//connector.setHost(ip);	// The network interface this connector binds to as an IP address or a hostname.  If null or 0.0.0.0, then bind to all interfaces.
+					}
+					connector.setPort(port);
+					server.setConnectors(new Connector[]{connector});
+
+					// Set a handler
+					HandlerCollection handlerc =new HandlerCollection();
+					handlerc.setHandlers(new Handler[]{new JettyServerHandler()});
+					server.setHandler(handlerc);
+					logger.info(">>>>>>>>>>> xxl-job jetty server new end");
+				} catch (Exception e) {
+					logger.error(">>>>>>>>>>> xxl-job jetty server new error" + e.getMessage(), e);
 				}
-				connector.setPort(port);
-				server.setConnectors(new Connector[]{connector});
-
-				// Set a handler
-				HandlerCollection handlerc =new HandlerCollection();
-				handlerc.setHandlers(new Handler[]{new JettyServerHandler()});
-				server.setHandler(handlerc);
 
 				try {
 					// Start server
@@ -55,7 +61,7 @@ public class JettyServer {
 					server.join();	// block until thread stopped
 					logger.info(">>>>>>>>>>> xxl-rpc server join success, netcon={}, port={}", JettyServer.class.getName(), port);
 				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
+					logger.error(">>>>>>>>>>> xxl-rpc server join error" + e.getMessage(), e);
 				} finally {
 					//destroy();
 				}
